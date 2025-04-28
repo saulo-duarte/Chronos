@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card';
 import FolderGrid from './_components/FolderGrid';
 import { Button } from '@/components/ui/button';
-import { Folder as FolderIcon, Plus, ArrowLeft, Home } from 'lucide-react';
+import { Plus, ArrowLeft, Home } from 'lucide-react';
 import AddFolderDialog from './_components/AddFolderDialog';
 import EditFolderDialog from './_components/EditFolderDialog';
 import DeleteFolderDialog from './_components/DeleteFolderDialog';
@@ -113,10 +113,8 @@ export default function FolderSystem() {
     }
   };
 
-  // Updated to match EditFolderDialog expectations
   const handleUpdateFolder = async (id: string | number, name: string, path: string) => {
     try {
-      // Convert string id to number if needed
       const folderId = typeof id === 'string' ? parseInt(id, 10) : id;
       await invoke('update_folder_command', { folderId, name });
       setIsEditDialogOpen(false);
@@ -143,10 +141,8 @@ export default function FolderSystem() {
   };
 
   const openEditDialog = (folder: Folder) => {
-    // Make sure the folder object has a path property before passing to EditFolderDialog
     const folderWithPath = {
       ...folder,
-      // If path doesn't exist, create a default path based on folder name
       path: folder.path || `/${folder.name}`
     };
     setEditingFolder(folderWithPath);
@@ -165,12 +161,11 @@ export default function FolderSystem() {
 
   return (
     <div className="h-screen overflow-y-auto">
-      <Card>
+      <Card className="bg-background border-0 shadow-none">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-2xl font-bold">
             <div className="flex items-center gap-2">
-              <FolderIcon className="text-blue-500" />
-              File System
+              Chrono Vault
             </div>
           </CardTitle>
           <div className="flex gap-2">
