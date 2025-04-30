@@ -11,7 +11,7 @@ use commands::{
     refresh_databases,remove_database, set_active_db, set_last_directory,
     add_folder_command, get_all_folders_command, get_folder_by_id_command,
     update_folder_command, delete_folder_command, close_window,
-    minimize_window, maximize_window,
+    minimize_window, maximize_window, add_file_command,
 };
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -43,6 +43,7 @@ pub fn run() {
             close_window,
             minimize_window,
             maximize_window,
+            add_file_command,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
