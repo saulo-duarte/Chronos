@@ -1,11 +1,15 @@
 use serde::{Deserialize, Serialize};
 use std::error::Error;
-use std::{collections::HashMap, fs, io::Write, path::{PathBuf, Path}};
+use std::{
+    collections::HashMap,
+    fs,
+    io::Write,
+    path::{Path, PathBuf},
+};
 
 use crate::db::initialize::create_schema;
 use diesel::sqlite::SqliteConnection;
 use diesel::Connection;
-
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DatabaseMetadata {
@@ -13,6 +17,7 @@ pub struct DatabaseMetadata {
     pub path: String,
     pub created_at: String,
     pub last_accessed: Option<String>,
+    pub is_active: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -76,7 +81,7 @@ impl ConfigManager {
 
     pub fn get_active_db() -> Option<DatabaseMetadata> {
         let config = Self::load_config();
-    
+
         if let Some(active_db_name) = config.active_db {
             config.databases.get(&active_db_name).cloned()
         } else {
@@ -102,54 +107,63 @@ impl ConfigManager {
 
     pub fn add_database(name: String, path: String) -> Result<(), String> {
         let db_path = Path::new(&path).join(format!("{}.db", name));
-    
+
         if db_path.exists() {
             return Err(format!("Database '{}' already exists.", name));
         }
-    
-        fs::create_dir_all(&path).map_err(|e| format!("Failed to create database directory: {}", e))?;
-    
+
+        fs::create_dir_all(&path)
+            .map_err(|e| format!("Failed to create database directory: {}", e))?;
+
         let mut conn = SqliteConnection::establish(&db_path.to_str().unwrap())
             .map_err(|e| format!("Failed to establish connection: {}", e))?;
-    
+
         create_schema(&mut conn).map_err(|e| format!("Failed to create database schema: {}", e))?;
-    
+
         let mut config = ConfigManager::load_config();
-    
+
         if config.databases.contains_key(&name) {
             return Err(format!("Database '{}' already exists in config.", name));
         }
-    
+
         let metadata = DatabaseMetadata {
             name: name.clone(),
             path: db_path.to_str().unwrap().to_string(),
             created_at: chrono::Local::now().to_rfc3339(),
             last_accessed: None,
+            is_active: false,
         };
-    
+
         config.databases.insert(name.clone(), metadata);
-    
+
         if config.active_db.is_none() {
             config.active_db = Some(name);
         }
-    
+
         ConfigManager::save_config(&config).map_err(|e| e.to_string())?;
-    
+
         Ok(())
     }
 
     pub fn remove_database(name: &str) -> Result<(), String> {
         let mut config = Self::load_config();
-
-        if config.databases.remove(name).is_none() {
-            return Err(format!("Database '{}' not found.", name));
-        }
-
+    
+        let metadata = config.databases.remove(name)
+            .ok_or_else(|| format!("Database '{}' not found.", name))?;
+    
         if config.active_db.as_deref() == Some(name) {
             config.active_db = config.databases.keys().next().cloned();
         }
-
-        Self::save_config(&config).map_err(|e| e.to_string())
+    
+        Self::save_config(&config).map_err(|e| e.to_string())?;
+    
+        let db_path = Path::new(&metadata.path);
+        if db_path.exists() {
+            fs::remove_file(db_path)
+                .map_err(|e| format!("Failed to delete database file '{}': {}", db_path.display(), e))?;
+        }
+    
+        Ok(())
     }
 
     pub fn set_last_directory(path: PathBuf) -> Result<(), String> {
@@ -164,9 +178,18 @@ impl ConfigManager {
 
     pub fn list_databases() -> Vec<DatabaseMetadata> {
         let config = Self::load_config();
-        config.databases.values().cloned().collect()
+        let active_name = config.active_db.as_deref();
+    
+        config.databases
+            .values()
+            .map(|db| {
+                let mut db = db.clone();
+                db.is_active = Some(db.name.as_str()) == active_name;
+                db
+            })
+            .collect()
     }
-
+    
     pub fn refresh_databases() -> Result<(), String> {
         let mut config = Self::load_config();
 
@@ -190,6 +213,7 @@ impl ConfigManager {
                                 path: path_str,
                                 created_at: chrono::Local::now().to_rfc3339(),
                                 last_accessed: None,
+                                is_active: false,
                             };
 
                             config.databases.insert(file_name, metadata);
