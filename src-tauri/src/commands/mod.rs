@@ -9,3 +9,6 @@ pub use window_commands::*;
 
 pub mod file_commands;
 pub use file_commands::*;
+
+pub mod categories_commands;
+pub use categories_commands::*;
