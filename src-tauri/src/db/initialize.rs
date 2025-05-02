@@ -3,6 +3,8 @@ use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 
 pub fn create_schema(conn: &mut SqliteConnection) -> Result<(), diesel::result::Error> {
+    sql_query("PRAGMA foreign_keys = ON;").execute(conn)?;
+
     sql_query(
         "CREATE TABLE IF NOT EXISTS folders (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -14,7 +16,7 @@ pub fn create_schema(conn: &mut SqliteConnection) -> Result<(), diesel::result::
             FOREIGN KEY (parent_id) REFERENCES folders(id) ON DELETE CASCADE
         );"
     ).execute(conn)?;
-    
+
     sql_query(
         "CREATE TABLE IF NOT EXISTS files (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,7 +32,36 @@ pub fn create_schema(conn: &mut SqliteConnection) -> Result<(), diesel::result::
         );"
     ).execute(conn)?;
 
-    sql_query("PRAGMA foreign_keys = ON;").execute(conn)?;
+    sql_query(
+        "CREATE TABLE categories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE,
+            description TEXT,
+            type TEXT NOT NULL CHECK(type IN ('project', 'study')),
+            status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'archived', 'completed', 'on_hold')),
+            created_at TEXT NOT NULL,
+            updated_at TEXT
+        );"
+    ).execute(conn)?;
+
+    sql_query(
+        "CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            description TEXT,
+            status TEXT NOT NULL CHECK(status IN ('not_initialized', 'in_progress', 'done', 'recall')),
+            type TEXT NOT NULL CHECK(type IN ('project', 'study', 'event')),
+            parent_id INTEGER,
+            category_id INTEGER,
+            due_date TEXT,
+            last_recall TEXT,
+            recalls TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT,
+            FOREIGN KEY (parent_id) REFERENCES tasks(id) ON DELETE CASCADE,
+            FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+        );"
+    ).execute(conn)?;
 
     #[derive(diesel::QueryableByName)]
     struct CountResult {
@@ -45,9 +76,8 @@ pub fn create_schema(conn: &mut SqliteConnection) -> Result<(), diesel::result::
     if folder_count == 0 {
         sql_query(
             "INSERT INTO folders (name, path, created_at, last_accessed, parent_id)
-             VALUES ('/', '/', datetime('now'), NULL, NULL);",
-        )
-        .execute(conn)?;
+             VALUES ('/', '/', datetime('now'), NULL, NULL);"
+        ).execute(conn)?;
     }
 
     Ok(())
