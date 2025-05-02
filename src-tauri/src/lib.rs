@@ -12,6 +12,8 @@ use commands::{
     get_file_by_id_command, get_files_by_folder_id_command, get_folder_by_id_command,
     get_last_directory, list_databases, maximize_window, minimize_window, refresh_databases,
     remove_database, set_active_db, set_last_directory, update_file_command, update_folder_command,
+    add_category_command, get_category_by_id_command, get_all_categories_command,
+    update_category_command, delete_category_command,
 };
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -50,6 +52,11 @@ pub fn run() {
             get_files_by_folder_id_command,
             update_file_command,
             delete_file_command,
+            add_category_command,
+            get_category_by_id_command,
+            get_all_categories_command,
+            update_category_command,
+            delete_category_command,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
