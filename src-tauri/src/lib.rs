@@ -2,21 +2,22 @@ pub mod commands;
 pub mod config;
 pub mod db;
 pub mod models;
-pub mod schema;
 pub mod repository;
+pub mod schema;
 pub mod services;
 
 use commands::{
-    add_database, get_active_db, get_last_directory, list_databases, 
-    refresh_databases,remove_database, set_active_db, set_last_directory,
-    add_folder_command, get_all_folders_command, get_folder_by_id_command,
-    update_folder_command, delete_folder_command, close_window,
-    minimize_window, maximize_window, add_file_command,
+    add_database, add_file_command, add_folder_command, close_window, delete_file_command,
+    delete_folder_command, get_active_db, get_all_files_command, get_all_folders_command,
+    get_file_by_id_command, get_files_by_folder_id_command, get_folder_by_id_command,
+    get_last_directory, list_databases, maximize_window, minimize_window, refresh_databases,
+    remove_database, set_active_db, set_last_directory, update_file_command, update_folder_command,
 };
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             if cfg!(debug_assertions) {
@@ -44,6 +45,11 @@ pub fn run() {
             minimize_window,
             maximize_window,
             add_file_command,
+            get_all_files_command,
+            get_file_by_id_command,
+            get_files_by_folder_id_command,
+            update_file_command,
+            delete_file_command,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
