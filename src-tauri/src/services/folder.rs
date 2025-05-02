@@ -1,8 +1,11 @@
-use diesel::sqlite::SqliteConnection;
-use crate::repository::{get_folder_by_id, get_all_folders};
 use crate::models::Folder;
+use crate::repository::{get_all_folders, get_folder_by_id};
+use diesel::sqlite::SqliteConnection;
 
-pub fn build_path_from_parent(conn: &mut SqliteConnection, parent_id: Option<i32>) -> Result<String, String> {
+pub fn build_path_from_parent(
+    conn: &mut SqliteConnection,
+    parent_id: Option<i32>,
+) -> Result<String, String> {
     match parent_id {
         Some(id) => {
             let parent_folder = get_folder_by_id(conn, id)
@@ -19,7 +22,11 @@ pub fn build_path_from_parent(conn: &mut SqliteConnection, parent_id: Option<i32
     }
 }
 
-pub fn folder_name_exists(conn: &mut SqliteConnection, parent_id: Option<i32>, name_to_check: &str) -> Result<bool, String> {
+pub fn folder_name_exists(
+    conn: &mut SqliteConnection,
+    parent_id: Option<i32>,
+    name_to_check: &str,
+) -> Result<bool, String> {
     let folders = get_all_folders(conn).map_err(|e| format!("Failed to list folders: {}", e))?;
 
     Ok(folders.iter().any(|folder| {
@@ -37,7 +44,8 @@ pub fn prepare_new_folder(
             return Err("Only a 'root' folder can exist at the top level.".to_string());
         }
 
-        let folders = get_all_folders(conn).map_err(|e| format!("Failed to list folders: {}", e))?;
+        let folders =
+            get_all_folders(conn).map_err(|e| format!("Failed to list folders: {}", e))?;
         if folders.iter().any(|f| f.parent_id.is_none()) {
             return Err("Root folder already exists.".to_string());
         }
