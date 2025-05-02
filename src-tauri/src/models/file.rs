@@ -1,6 +1,6 @@
-use diesel::{Queryable, Insertable};
-use serde::{Deserialize, Serialize};
 use crate::schema::files;
+use diesel::{Insertable, Queryable};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Clone)]
 pub struct File {
@@ -20,7 +20,7 @@ pub struct File {
 pub struct NewFile<'a> {
     pub name: &'a str,
     pub is_favorite: bool,
-    pub file_type: &'a str,
+    pub file_type: String,
     pub link: Option<&'a str>,
     pub content: &'a [u8],
     pub folder_id: i32,
