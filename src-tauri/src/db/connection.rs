@@ -1,7 +1,7 @@
+use crate::config::ConfigManager;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 use std::path::Path;
-use crate::config::ConfigManager;
 
 pub struct DbConnection;
 
@@ -13,15 +13,15 @@ impl DbConnection {
 
                 if Path::new(&db_path).exists() {
                     SqliteConnection::establish(&db_path)
-                        .map_err(|e| format!("Falha ao conectar com o banco de dados: {}", e))
+                        .map_err(|e| format!("Failed to connect to database: {}", e))
                 } else {
-                    Err(format!("O banco de dados ativo não foi encontrado no caminho: {}", db_path))
+                    Err(format!(
+                        "The active database was not found at path: {}",
+                        db_path
+                    ))
                 }
             }
-            None => {
-                Err("Nenhum banco de dados ativo encontrado.".to_string())
-            }
+            None => Err("No active database found.".to_string()),
         }
     }
 }
-
