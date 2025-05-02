@@ -1,14 +1,15 @@
+use crate::models::Folder;
+use crate::schema::folders;
+use diesel::dsl::{delete, update};
 use diesel::insert_into;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
-use diesel::dsl::{update, delete};
-use crate::models::Folder;
-use crate::schema::folders;
 
-pub fn add_folder(conn: &mut SqliteConnection, new_folder: &Folder) -> Result<Folder, diesel::result::Error> {
-    insert_into(folders::table)
-        .values(new_folder)
-        .execute(conn)?;
+pub fn add_folder(
+    conn: &mut SqliteConnection,
+    new_folder: &Folder,
+) -> Result<Folder, diesel::result::Error> {
+    insert_into(folders::table).values(new_folder).execute(conn)?;
 
     let inserted_folder = folders::table
         .filter(folders::name.eq(&new_folder.name))
@@ -26,7 +27,10 @@ pub fn get_all_folders(conn: &mut SqliteConnection) -> Result<Vec<Folder>, diese
     Ok(results)
 }
 
-pub fn get_folder_by_id(conn: &mut SqliteConnection, folder_id: i32) -> Result<Folder, diesel::result::Error> {
+pub fn get_folder_by_id(
+    conn: &mut SqliteConnection,
+    folder_id: i32,
+) -> Result<Folder, diesel::result::Error> {
     use crate::schema::folders::dsl::*;
 
     let result = folders.filter(id.eq(folder_id)).first::<Folder>(conn)?;
@@ -34,7 +38,11 @@ pub fn get_folder_by_id(conn: &mut SqliteConnection, folder_id: i32) -> Result<F
     Ok(result)
 }
 
-pub fn update_folder(conn: &mut SqliteConnection, folder_id: i32, updated_folder: Folder) -> Result<Folder, diesel::result::Error> {
+pub fn update_folder(
+    conn: &mut SqliteConnection,
+    folder_id: i32,
+    updated_folder: Folder,
+) -> Result<Folder, diesel::result::Error> {
     update(folders::table.filter(folders::id.eq(folder_id)))
         .set((
             folders::name.eq(&updated_folder.name),
@@ -48,7 +56,9 @@ pub fn update_folder(conn: &mut SqliteConnection, folder_id: i32, updated_folder
     Ok(updated_folder)
 }
 
-pub fn delete_folder(conn: &mut SqliteConnection, folder_id: i32) -> Result<usize, diesel::result::Error> {
-    delete(folders::table.filter(folders::id.eq(folder_id)))
-        .execute(conn)
+pub fn delete_folder(
+    conn: &mut SqliteConnection,
+    folder_id: i32,
+) -> Result<usize, diesel::result::Error> {
+    delete(folders::table.filter(folders::id.eq(folder_id))).execute(conn)
 }
