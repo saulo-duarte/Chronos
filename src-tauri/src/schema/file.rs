@@ -1,5 +1,5 @@
-use diesel::table;
 use crate::schema::folders;
+use diesel::table;
 
 table! {
   files (id) {
@@ -17,7 +17,4 @@ table! {
 
 diesel::joinable!(files -> folders (folder_id));
 
-diesel::allow_tables_to_appear_in_same_query!(
-  folders,
-  files,
-);
+diesel::allow_tables_to_appear_in_same_query!(folders, files,);
