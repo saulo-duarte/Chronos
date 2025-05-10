@@ -12,10 +12,10 @@ export default function EmptyState({ folderName }: { folderName: string }) {
       <img src="/EmptyFolder.svg" alt="Empty Folder" className="mx-auto mb-4" width={450}/>
       <h3 className="text-lg font-medium mb-2">Empty Folder</h3>
       <p className="text-gray-500">
-        The folder <span className="font-semibold">{folderName}</span> doesn't contain any subfolders.
+        The folder <span className="font-semibold">{folderName}</span> doesn't contain any items.
       </p>
       <p className="text-gray-500 mt-2">
-        Click on "New Folder" to create a subfolder.
+        Click on "New Folder" to create a folder or "Add File" to upload a file.
       </p>
     </div>
   );
@@ -24,7 +24,7 @@ export default function EmptyState({ folderName }: { folderName: string }) {
 export function LoadingState() {
   return (
     <div className="text-center py-8">
-      Loading folders...
+      Loading content...
     </div>
   );
 }

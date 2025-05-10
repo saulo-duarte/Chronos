@@ -4,13 +4,15 @@ import { Plus, ArrowLeft, Home } from 'lucide-react';
 
 interface FolderHeaderProps {
   onClickNewFolder: () => void;
+  onClickNewFile: () => void;
   onClickHome: () => void;
   onClickBack: () => void;
   disableNavigation: boolean;
 }
 
-export default function FolderHeader({
+export default function ChronoVaultHeader({
   onClickNewFolder,
+  onClickNewFile,
   onClickHome,
   onClickBack,
   disableNavigation
@@ -29,7 +31,7 @@ export default function FolderHeader({
           onClick={onClickHome}
           disabled={disableNavigation}
         >
-          <Home size={16} /> Home
+          <Home size={16} /> Root
         </Button>
         <Button 
           variant="outline" 
@@ -41,6 +43,9 @@ export default function FolderHeader({
         </Button>
         <Button className="gap-1" onClick={onClickNewFolder}>
           <Plus size={16} /> New Folder
+        </Button>
+        <Button className="gap-1" onClick={onClickNewFile}>                                         
+          <Plus size={16} /> New File
         </Button>
       </div>
     </CardHeader>
