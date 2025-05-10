@@ -49,7 +49,7 @@ pub fn create_schema(conn: &mut SqliteConnection) -> Result<(), diesel::result::
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
             description TEXT,
-            status TEXT NOT NULL CHECK(status IN ('not_initialized', 'in_progress', 'done', 'recall')),
+            status TEXT NOT NULL CHECK(status IN ('not_initialized', 'in_progress', 'done', 'recall', 'to_do')),
             type TEXT NOT NULL CHECK(type IN ('project', 'study', 'event')),
             parent_id INTEGER,
             category_id INTEGER,

@@ -12,6 +12,24 @@ diesel::table! {
 }
 
 diesel::table! {
+   tasks (id) {
+       id -> Integer,
+       title -> Text,
+       description -> Nullable<Text>,
+       status -> Text,
+       #[sql_name = "type"]
+       type_ -> Text,
+       parent_id -> Nullable<Integer>,
+       category_id -> Nullable<Integer>,
+       due_date -> Nullable<Text>,
+       last_recall -> Nullable<Text>,
+       recalls -> Nullable<Text>,
+       created_at -> Text,
+       updated_at -> Nullable<Text>,
+   }
+}
+
+diesel::table! {
    folders (id) {
        id -> Nullable<Integer>,
        name -> Text,
@@ -37,9 +55,11 @@ diesel::table! {
 }
 
 diesel::joinable!(files -> folders (folder_id));
+diesel::joinable!(tasks -> categories (category_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
    categories,
    folders,
    files,
+   tasks,
 );
