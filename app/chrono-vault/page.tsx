@@ -1,46 +1,52 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { useState } from 'react';
 import { 
   Card, 
   CardContent, 
-  CardHeader, 
-  CardTitle 
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Plus, ArrowLeft, Home } from 'lucide-react';
 import { Folder } from '@/types/Folder';
-
-import FolderHeader from './_components/FolderHeader';
+import ChronoVaultHeader from './_components/ChronoVaultHeader';
 import FolderNavigation from './_components/FolderNavigation';
 import FolderContent from './_components/FolderContent';
 import FolderDialogs from './_components/FolderDialogs';
-import { ErrorAlert } from './_components/Util';
+import AddFileDialog from './_components/AddFileDialog';
+import ErrorAlert from './_components/Util';
 import { useFolderSystem } from './_hooks/useFolderSystem';
+import { File } from '@/types/File';
+import EditFileDialog from './_components/EditFileDialog';
 
 export default function FolderSystem() {
   const {
-    allFolders,
     currentFolders,
     currentFolderId,
     folderPath,
+    files,
     isLoading,
+    isFilesLoading,
     error,
     navigateToFolder,
     navigateUp,
     navigateToRoot,
     handleAddFolder,
     handleUpdateFolder,
-    fetchAllFolders,
+    handleDeleteFolder,
+    handleAddFile,
+    handleUpdateFile,
+    handleDeleteFile,
+    handleToggleFavoriteFile,
+    handleOpenFile,
     getCurrentFolderName
   } = useFolderSystem();
 
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
   const [folderToDelete, setFolderToDelete] = useState<Folder | null>(null);
+  const [editingFile, setEditingFile] = useState<File | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isAddFileDialogOpen, setIsAddFileDialogOpen] = useState(false);
+  const [isEditFileDialogOpen, setIsEditFileDialogOpen] = useState(false);
 
   const openEditDialog = (folder: Folder) => {
     const folderWithPath = {
@@ -51,18 +57,19 @@ export default function FolderSystem() {
     setIsEditDialogOpen(true);
   };
 
-  const openDeleteDialog = (folder: Folder) => {
-    setFolderToDelete(folder);
-    setIsDeleteDialogOpen(true);
+  const openEditFileDialog = (file: File) => {
+    setEditingFile(file);
+    setIsEditFileDialogOpen(true);
   };
 
   return (
-    <div className="h-screen overflow-y-auto">
+    <div className="h-full flex flex-col overflow-hidden">
       <Card className="bg-background border-0 shadow-none">
-        <FolderHeader 
+        <ChronoVaultHeader 
           onClickNewFolder={() => setIsAddDialogOpen(true)} 
           onClickHome={navigateToRoot} 
           onClickBack={navigateUp}
+          onClickNewFile={() => setIsAddFileDialogOpen(true)}
           disableNavigation={folderPath.length <= 1}
         />
         
@@ -74,15 +81,24 @@ export default function FolderSystem() {
             }} 
           />
           
-          {error && <ErrorAlert message={error} />}
+          {error && <ErrorAlert folderName={error} />}
           
           <FolderContent 
             isLoading={isLoading}
+            isFilesLoading={isFilesLoading}
             folders={currentFolders}
             folderName={getCurrentFolderName()}
+            files={files}
             onNavigate={navigateToFolder}
             onEdit={openEditDialog}
-            onDelete={openDeleteDialog}
+            onDelete={(folder) => {
+              setFolderToDelete(folder);
+              setIsDeleteDialogOpen(true);
+            }}
+            onOpenFile={handleOpenFile}
+            onEditFile={openEditFileDialog}
+            onDeleteFile={(file) => handleDeleteFile(file.id)}
+            onToggleFavoriteFile={handleToggleFavoriteFile}
           />
           
           <FolderDialogs 
@@ -104,8 +120,54 @@ export default function FolderSystem() {
             }}
             onAddFolder={handleAddFolder}
             onUpdateFolder={handleUpdateFolder}
-            onDeleteFolder={async () => console.log('Delete folder')}
+            onDeleteFolder={async () => {
+              if (folderToDelete) {
+                await handleDeleteFolder(folderToDelete.id);
+                setIsDeleteDialogOpen(false);
+                setFolderToDelete(null);
+              }
+            }}
           />
+          
+          <AddFileDialog
+            isOpen={isAddFileDialogOpen}
+            onClose={() => setIsAddFileDialogOpen(false)}
+            onAddFile={(name, content, link, isFavorite) => 
+              handleAddFile(name, content, link, currentFolderId || 1, isFavorite)
+            }
+            currentFolderId={currentFolderId || 0}
+            currentFolderName={getCurrentFolderName()}
+          />
+          <EditFileDialog
+            isOpen={isEditFileDialogOpen}
+            onClose={() => {
+              setIsEditFileDialogOpen(false);
+              setEditingFile(null);
+            }}
+            onEditFile={(
+              fileId,
+              folderId,
+              name,
+              content,
+              link,
+              isFavorite,
+              fileType,
+              created_at
+            ) =>
+              handleUpdateFile(
+                fileId,
+                folderId,
+                name,
+                content,
+                link,
+                fileType,
+                isFavorite,
+                created_at,
+              )
+            }
+            file={editingFile}
+          />
+
         </CardContent>
       </Card>
     </div>
