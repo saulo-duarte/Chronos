@@ -49,3 +49,13 @@ pub fn delete_category(conn: &mut SqliteConnection, category_id: i32) -> Result<
        .execute(conn)
 }
 
+
+pub fn task_exists(conn: &mut SqliteConnection, task_id: i32) -> Result<bool, Error> {
+    use crate::schema::tasks::dsl::*;
+    
+    let count = tasks
+        .filter(id.eq(task_id))
+        .count()
+        .get_result::<i64>(conn)?;
+    Ok(count > 0)
+}
