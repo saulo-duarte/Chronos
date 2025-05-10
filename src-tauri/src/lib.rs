@@ -6,15 +6,7 @@ pub mod repository;
 pub mod schema;
 pub mod services;
 
-use commands::{
-    add_database, add_file_command, add_folder_command, close_window, delete_file_command,
-    delete_folder_command, get_active_db, get_all_files_command, get_all_folders_command,
-    get_file_by_id_command, get_files_by_folder_id_command, get_folder_by_id_command,
-    get_last_directory, list_databases, maximize_window, minimize_window, refresh_databases,
-    remove_database, set_active_db, set_last_directory, update_file_command, update_folder_command,
-    add_category_command, get_category_by_id_command, get_all_categories_command,
-    update_category_command, delete_category_command,
-};
+use commands::*;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -57,6 +49,15 @@ pub fn run() {
             get_all_categories_command,
             update_category_command,
             delete_category_command,
+            add_task_command,
+            get_task_by_id_command,
+            get_all_tasks_command,
+            update_task_status_command,
+            update_task_recall_command,
+            get_tasks_by_category_id_command,
+            delete_task_command,
+            set_task_done_command,
+            update_task_command,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
