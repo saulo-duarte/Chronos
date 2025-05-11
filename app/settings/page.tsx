@@ -42,7 +42,7 @@ export default function SettingsPage() {
       </div>
       <div className="w-1/2 mt-12">
         <div className="flex items-center gap-4">
-          <img src="/Logo.svg" alt="Logo" width={100} />
+          <img src="/ChronosLogo.svg" alt="Logo" width={100} />
           <div className="flex-col">
             <h1 className="text-5xl font-bold">Welcome to Chronos!</h1>
             <p className="text-xl mt-4 text-foreground-muted">
