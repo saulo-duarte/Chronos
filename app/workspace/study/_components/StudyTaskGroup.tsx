@@ -5,17 +5,17 @@ import { Task } from '@/types/Task';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import TaskCard from './TaskCard';
+import StudyTaskCard from './StudyTaskCard';
 
 interface GroupedTasksProps {
   tasks: Task[];
-  categoryId?: number;
+  subjectId?: number;
   onDeleteTask: (taskId: number) => Promise<void>;
   onUpdateTask: (
     taskId: number,
     title: string,
     description: string | null,
-    categoryId: number | null,
+    subjectId: number | null,
     parentId: number | null,
     dueDate: string | null
   ) => Promise<boolean>;
@@ -29,22 +29,21 @@ interface TaskGroup {
 
 const statusColors: Record<string, string> = {
   to_do: '#fbbf24',
-  done: '#22c55e',
   in_progress: '#3b82f6',
-  backlog: '#9ca3af'
+  done: '#22c55e',
+  backlog: '#9ca3af',
+  recall: '#f472b6',
 };
 
-export default function GroupedTasks({
+export default function GroupedStudyTasks({
   tasks,
-  categoryId,
+  subjectId,
   onDeleteTask,
   onUpdateTask,
 }: GroupedTasksProps) {
   const normalizedTasks = tasks.map(task => {
     let status = (task.status || 'to_do').toLowerCase();
-    
     if (status === 'not_initialized') status = 'to_do';
-    
     return {
       ...task,
       status
@@ -54,7 +53,7 @@ export default function GroupedTasks({
   const [localTasks, setLocalTasks] = useState<Task[]>(normalizedTasks);
 
   useEffect(() => {
-    console.log('Tasks received in TaskGroup:', tasks.map(t => ({ id: t.id, status: t.status })));
+    console.log('Study Tasks received in GroupedStudyTasks:', tasks.map(t => ({ id: t.id, status: t.status })));
     setLocalTasks(normalizedTasks);
   }, [tasks]);
 
@@ -62,24 +61,27 @@ export default function GroupedTasks({
     {
       status: 'to_do',
       label: 'To Do',
-      tasks: localTasks.filter(
-        (task) => task.status === 'to_do' || task.status === 'pending'
-      ),
+      tasks: localTasks.filter(task => task.status === 'to_do' || task.status === 'pending'),
     },
     {
       status: 'in_progress',
       label: 'In Progress',
-      tasks: localTasks.filter((task) => task.status === 'in_progress'),
+      tasks: localTasks.filter(task => task.status === 'in_progress'),
+    },
+    {
+      status: 'recall',
+      label: 'Recall',
+      tasks: localTasks.filter(task => task.status === 'recall'),
     },
     {
       status: 'done',
       label: 'Completed',
-      tasks: localTasks.filter((task) => task.status === 'done'), // Removed 'completed' to only use 'done'
+      tasks: localTasks.filter(task => task.status === 'done'),
     },
     {
       status: 'backlog',
       label: 'Backlog',
-      tasks: localTasks.filter((task) => task.status === 'backlog'),
+      tasks: localTasks.filter(task => task.status === 'backlog'),
     },
   ];
 
@@ -89,12 +91,11 @@ export default function GroupedTasks({
     setGroups(getGroupedTasks());
   }, [localTasks]);
 
-  const [expandedGroups, setExpandedGroups] = useState<{
-    [key: string]: boolean;
-  }>({
+  const [expandedGroups, setExpandedGroups] = useState<{ [key: string]: boolean }>({
     to_do: true,
     in_progress: true,
-    done: false, // Changed from 'completed' to 'done'
+    recall: true,
+    done: false,
     backlog: false,
   });
 
@@ -111,7 +112,7 @@ export default function GroupedTasks({
   };
 
   const handleTaskUpdated = (updatedTask: Task) => {
-    setLocalTasks(prev => prev.map(task => 
+    setLocalTasks(prev => prev.map(task =>
       task.id === updatedTask.id ? updatedTask : task
     ));
   };
@@ -121,7 +122,7 @@ export default function GroupedTasks({
       {groups.map((group) => (
         <Card
           key={group.status}
-          className="w-full bg-card backdrop-blur-md border border-white/10 shadow-sm py-2" 
+          className="w-full bg-card backdrop-blur-md border border-white/10 shadow-sm py-2"
         >
           <CardHeader
             className="flex flex-row items-center justify-between p-4 py-2 cursor-pointer"
@@ -135,19 +136,19 @@ export default function GroupedTasks({
                   style={{ backgroundColor: statusColors[group.status] }}
                 />
               </div>
-        
+
               <h2
                 className="text-lg font-semibold"
                 style={{ color: statusColors[group.status] }}
               >
                 {group.label}
               </h2>
-        
+
               <span className="text-sm text-white/70 font-medium">
                 ({group.tasks.filter((task) => !task.parent_id).length})
               </span>
             </div>
-        
+
             <Button
               variant="ghost"
               size="sm"
@@ -164,32 +165,30 @@ export default function GroupedTasks({
               )}
             </Button>
           </CardHeader>
-            {expandedGroups[group.status] && (
-              <CardContent className="py-0">
-                {group.tasks.filter(task => !task.parent_id).length > 0 ? (
-                  <div className="grid grid-cols-1 gap-4">
-                    {group.tasks.filter(task => !task.parent_id).map((task) => {
-                      const taskSubtasks = localTasks.filter((subtask) => subtask.parent_id === task.id);
-                      
-                      return (
-                        <TaskCard 
-                          key={task.id} 
-                          task={task} 
-                          subtasks={taskSubtasks}
-                          onDelete={() => handleTaskDelete(task.id)}
-                          onTaskUpdated={handleTaskUpdated}
-                        />
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-gray-500 text-center">
-                    No tasks in this category.
-                  </p>
-                )}
-              </CardContent>
-            )}
-          </Card>
+          {expandedGroups[group.status] && (
+            <CardContent className="py-0">
+              {group.tasks.filter(task => !task.parent_id).length > 0 ? (
+                <div className="grid grid-cols-1 gap-4">
+                  {group.tasks.filter(task => !task.parent_id).map((task) => {
+                    const taskSubtasks = localTasks.filter((subtask) => subtask.parent_id === task.id);
+
+                    return (
+                      <StudyTaskCard
+                        key={task.id}
+                        task={task}
+                        subtasks={taskSubtasks}
+                        onDelete={() => handleTaskDelete(task.id)}
+                        onTaskUpdated={handleTaskUpdated}
+                      />
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center">No tasks in this category.</p>
+              )}
+            </CardContent>
+          )}
+        </Card>
       ))}
     </div>
   );
