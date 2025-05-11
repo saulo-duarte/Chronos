@@ -28,28 +28,39 @@ const TitlebarControls: React.FC = () => {
   };
 
   return (
-    <header className="flex items-center justify-end gap-8 bg-background border-b-[3px] h-12 select-none" style={{ WebkitAppRegion: "drag" } as React.CSSProperties}>
-      <Button 
-        onClick={handleMinimize} 
-        title="Minimaze" 
-        variant="ghost"
+    <header className="flex items-center justify-between px-2 py-1 bg-sidebar border-b-[3px] h-12 select-none" style={{ WebkitAppRegion: "drag" } as React.CSSProperties}>
+      <div className='flex items-center gap-2'>
+        <img src="/ChronosLogo.svg" width={32} height={32} alt="Chronos Logo" />
+        <span
+          className="text-2xl font-semibold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent font-['IBM_Plex_Sans']"
+        > Chronos
+        </span>
+      </div>
+      <div className=''>
+        <Button 
+          onClick={handleMinimize} 
+          title="Minimaze" 
+          variant="ghost"
+          className='rounded-xs'
+          >
+          <Minus size={24} />
+        </Button>
+        <Button 
+          onClick={handleMaximize} 
+          title="Maximaze" 
+          variant="ghost"
+          className='rounded-xs'
         >
-        <Minus size={24} />
-      </Button>
-      <Button 
-        onClick={handleMaximize} 
-        title="Maximaze" 
-        variant="ghost"
-      >
-        <Square size={24} />
-      </Button>
-      <Button 
-        onClick={handleClose} 
-        title="Close"
-        variant="ghost" 
-        className='hover:bg-destructive'>
-        <X size={24} />
-      </Button>
+          <Square size={24} />
+        </Button>
+        <Button 
+          onClick={handleClose} 
+          title="Close"
+          variant="ghost" 
+          className='dark:hover:bg-red-600 rounded-xs'>
+          <X size={24} />
+        </Button>
+      </div>
     </header>
   );
 };
