@@ -12,3 +12,6 @@ pub use file_commands::*;
 
 pub mod categories_commands;
 pub use categories_commands::*;
+
+pub mod task_commands;
+pub use task_commands::*;
