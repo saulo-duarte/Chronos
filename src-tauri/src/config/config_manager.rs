@@ -97,6 +97,11 @@ impl ConfigManager {
 
             if let Some(db_info) = config.databases.get_mut(name) {
                 db_info.last_accessed = Some(chrono::Local::now().to_rfc3339());
+            
+                let mut conn = SqliteConnection::establish(&db_info.path)
+                    .map_err(|e| format!("Failed to connect to database: {}", e))?;
+            
+                create_schema(&mut conn).map_err(|e| format!("Failed to update schema: {}", e))?;
             }
 
             Self::save_config(&config).map_err(|e| e.to_string())
