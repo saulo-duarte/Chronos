@@ -10,10 +10,10 @@ import {
   XCircle 
 } from 'lucide-react';
 
-
 interface TasksOverviewProps {
   tasks: Task[];
   categoryId?: number;
+  categoryDescription?: string;
 }
 
 export default function TasksOverview({ tasks }: TasksOverviewProps) {
@@ -21,25 +21,25 @@ export default function TasksOverview({ tasks }: TasksOverviewProps) {
   const completedTasks = tasks.filter(task => task.status === 'done').length;
   const inProgressTasks = tasks.filter(task => task.status === 'in_progress').length;
   const pendingTasks = totalTasks - completedTasks;
-  
+
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   const today = new Date();
   const overdueTasks = tasks.filter(task => {
     if (!task.due_date) return false;
     if (task.status === 'done') return false;
-    
+
     const dueDate = new Date(task.due_date);
     return dueDate < today;
   });
 
   const sevenDaysFromNow = new Date();
   sevenDaysFromNow.setDate(today.getDate() + 7);
-  
+
   const upcomingTasks = tasks.filter(task => {
     if (!task.due_date) return false;
     if (task.status === 'done') return false;
-    
+
     const dueDate = new Date(task.due_date);
     return dueDate >= today && dueDate <= sevenDaysFromNow;
   });
@@ -59,96 +59,149 @@ export default function TasksOverview({ tasks }: TasksOverviewProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="flex flex-col lg:flex-row gap-6">
+      <div className="lg:basis-1/4 lg:shrink-0 space-y-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-semibold">Total Tasks</CardTitle>
-            <AlertCircle className="h-4 w-4 text-gray-500" />
+          <CardHeader>
+            <CardTitle>📌 Descrição do Projeto</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalTasks}</div>
+            <p className="text-sm text-gray-700">
+              Este projeto visa desenvolver um sistema de gerenciamento de tarefas eficiente para equipes de desenvolvimento.
+            </p>
           </CardContent>
         </Card>
-        
+
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-semibold">Completed</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
+          <CardHeader>
+            <CardTitle>🎯 Objetivos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{completedTasks}</div>
-            <p className="text-xs text-gray-500">{completionRate}% completion rate</p>
+            <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+              <li>Organizar e priorizar tarefas</li>
+              <li>Visualizar progresso do projeto</li>
+              <li>Monitorar prazos</li>
+            </ul>
           </CardContent>
         </Card>
-        
+
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-semibold">In Progress</CardTitle>
-            <Clock className="h-4 w-4 text-blue-500" />
+          <CardHeader>
+            <CardTitle>🔗 Links Importantes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{inProgressTasks}</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-semibold">Pending</CardTitle>
-            <CalendarClock className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{pendingTasks}</div>
+            <ul className="space-y-1 text-sm text-blue-600">
+              <li>
+                <a href="https://github.com/seu-projeto" target="_blank" rel="noopener noreferrer">
+                  Repositório GitHub
+                </a>
+              </li>
+              <li>
+                <a href="https://docs.seu-projeto.com" target="_blank" rel="noopener noreferrer">
+                  Documentação
+                </a>
+              </li>
+              <li>
+                <a href="https://trello.com/seu-projeto" target="_blank" rel="noopener noreferrer">
+                  Board no Trello
+                </a>
+              </li>
+            </ul>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg">Overdue Tasks</CardTitle>
-            <XCircle className="h-5 w-5 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            {overdueTasks.length === 0 ? (
-              <p className="text-gray-500">No overdue tasks!</p>
-            ) : (
-              <ul className="space-y-2">
-                {overdueTasks.map(task => (
-                  <li key={task.id} className="border-l-4 border-red-500 pl-3 py-1">
-                    <p className="font-medium">{task.title}</p>
-                    <p className="text-xs text-gray-500">
-                      Due: {new Date(task.due_date!).toLocaleDateString()}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+      <div className="lg:basis-3/4 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-lg font-semibold">Total Tasks</CardTitle>
+              <AlertCircle className="h-4 w-4 text-gray-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalTasks}</div>
+            </CardContent>
+          </Card>
 
-        <Card className="col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg">Upcoming Tasks</CardTitle>
-            <CalendarClock className="h-5 w-5 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            {upcomingTasks.length === 0 ? (
-              <p className="text-gray-500">No upcoming tasks in the next 7 days.</p>
-            ) : (
-              <ul className="space-y-2">
-                {upcomingTasks.map(task => (
-                  <li key={task.id} className="border-l-4 border-blue-500 pl-3 py-1">
-                    <p className="font-medium">{task.title}</p>
-                    <p className="text-xs text-gray-500">
-                      Due: {new Date(task.due_date!).toLocaleDateString()}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-lg font-semibold">Completed</CardTitle>
+              <CheckCircle className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{completedTasks}</div>
+              <p className="text-xs text-gray-500">{completionRate}% completion rate</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-lg font-semibold">In Progress</CardTitle>
+              <Clock className="h-4 w-4 text-blue-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{inProgressTasks}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-lg font-semibold">Pending</CardTitle>
+              <CalendarClock className="h-4 w-4 text-yellow-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{pendingTasks}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="col-span-1">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-lg">Overdue Tasks</CardTitle>
+              <XCircle className="h-5 w-5 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              {overdueTasks.length === 0 ? (
+                <p className="text-gray-500">No overdue tasks!</p>
+              ) : (
+                <ul className="space-y-2">
+                  {overdueTasks.map(task => (
+                    <li key={task.id} className="border-l-4 border-red-500 pl-3 py-1">
+                      <p className="font-medium">{task.title}</p>
+                      <p className="text-xs text-gray-500">
+                        Due: {new Date(task.due_date!).toLocaleDateString()}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="col-span-1">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-lg">Upcoming Tasks</CardTitle>
+              <CalendarClock className="h-5 w-5 text-blue-500" />
+            </CardHeader>
+            <CardContent>
+              {upcomingTasks.length === 0 ? (
+                <p className="text-gray-500">No upcoming tasks in the next 7 days.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {upcomingTasks.map(task => (
+                    <li key={task.id} className="border-l-4 border-blue-500 pl-3 py-1">
+                      <p className="font-medium">{task.title}</p>
+                      <p className="text-xs text-gray-500">
+                        Due: {new Date(task.due_date!).toLocaleDateString()}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

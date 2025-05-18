@@ -53,12 +53,18 @@ export function useWorkspace() {
     }
   };
 
-  const handleAddCategory = async (name: string, categoryType: string, status: string) => {
+  const handleAddCategory = async (
+    name: string, 
+    categoryType: string, 
+    status: string,
+    description: string
+  ) => {
     try {
       await invoke('add_category_command', { 
         name, 
         categoryType, 
-        status 
+        status,
+        description,
       });
       await fetchAllCategories();
       return Promise.resolve();

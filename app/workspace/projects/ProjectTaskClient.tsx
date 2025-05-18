@@ -69,7 +69,7 @@ export default function ProjectTasksClient() {
           <h1 className="text-2xl font-bold">
             {selectedCategory?.name || 'Project Tasks'}
           </h1>
-          <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+          <span className="bg-blue-600/30 text-sm font-medium text-blue-400 px-2.5 py-0.5 rounded-lg">
             {selectedCategory?.status || 'unknown'}
           </span>
         </div>

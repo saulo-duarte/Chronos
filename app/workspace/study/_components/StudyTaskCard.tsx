@@ -11,10 +11,10 @@ import {
 } from '@/components/ui/card';
 import { Calendar } from 'lucide-react';
 import TaskDropdownMenu from '../../projects/_components/TaskDropdownMenu';
-import SubtasksList from '../../projects/_components/SubTaskLists';
 import DeleteTaskDialog from '../../projects/_components/DeleteTaskDialog';
 import AddSubtaskDialog from '../../projects/_components/AddSubTaskDialog';
 import EditTaskDialog from '../../projects/_components/EditTaskDialog';
+import StudySubtasksList from './StudySubtaskList';
 
 interface TaskCardProps {
   task: Task;
@@ -46,7 +46,7 @@ export default function StudyTaskCard({ task, subtasks, onDelete, onTaskUpdated 
 
   useEffect(() => {
     if (localSubtasks?.length > 0) {
-      console.log(`Task ${localTask.id} (${localTask.title}) subtasks updated:`, 
+      console.log(`Study Task ${localTask.id} (${localTask.title}) subtasks updated:`, 
         localSubtasks.map(s => ({id: s.id, title: s.title, status: s.status})));
     }
   }, [localSubtasks, localTask]);
@@ -142,10 +142,10 @@ export default function StudyTaskCard({ task, subtasks, onDelete, onTaskUpdated 
       </CardContent>
 
       {localSubtasks.length > 0 && (
-        <SubtasksList 
+        <StudySubtasksList 
           subtasks={localSubtasks} 
           onSubtaskChanged={(updatedSubtasks) => {
-            console.log('Subtasks changed in TaskCard:', updatedSubtasks.map(s => ({id: s.id, status: s.status})));
+            console.log('Study subtasks changed in StudyTaskCard:', updatedSubtasks.map(s => ({id: s.id, status: s.status})));
             setLocalSubtasks(updatedSubtasks);
           }}
         />

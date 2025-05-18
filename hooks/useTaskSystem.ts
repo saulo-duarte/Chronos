@@ -194,6 +194,20 @@ export function useTasks(autoLoad = true) {
     }
   };
 
+  const fetchPendingTasks = async () => {
+    try {
+      setIsLoading(true);
+      const result = await invoke('get_pending_tasks_command') as Task[];
+      setAllTasks(result);
+      setError(null);
+      return result;
+    } catch (err) {
+      setError(`Error loading pending tasks: ${err}`);
+      console.error('Error loading pending tasks:', err);
+      return null;
+    }
+  };
+
   const selectTask = (task: Task) => setSelectedTask(task);
   const clearSelectedTask = () => setSelectedTask(null);
 
@@ -214,5 +228,6 @@ export function useTasks(autoLoad = true) {
     handleChangeCompleteTask,
     selectTask,
     clearSelectedTask,
+    fetchPendingTasks,
   };
 }

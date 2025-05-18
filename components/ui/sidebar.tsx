@@ -1,15 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { Home, Settings } from "lucide-react";
+import { Home, PlaneLanding, Settings } from "lucide-react";
 import { LuFolders } from "react-icons/lu";
-import { MdOutlineWork } from "react-icons/md";
+import { MdOutlineWork, MdPending } from "react-icons/md";
 
 const menuItems = [
   { icon: Home, label: "Home", href: "/" },
   { icon: Settings, label: "Settings", href: "/settings" },
   { icon: LuFolders, label: "Chrono Vault", href: "/chrono-vault" },
   { icon: MdOutlineWork, label: "Workspace", href: "/workspace" },
+  { icon: PlaneLanding, label: "Planning", href: "/planning" },
 ];
 
 export default function Sidebar() {
