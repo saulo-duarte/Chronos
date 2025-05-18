@@ -73,6 +73,12 @@ impl TaskRepository {
         Ok(())
     }
 
+    pub fn get_pending_tasks(
+        conn: &mut SqliteConnection
+    ) -> Result<Vec<Task>, DieselError> {
+        tasks.filter(status.ne("done")).load(conn)
+    }
+
     pub fn update_task(
         conn: &mut SqliteConnection,
         task_id_value: i32,

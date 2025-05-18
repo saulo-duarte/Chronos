@@ -58,6 +58,7 @@ pub fn run() {
             delete_task_command,
             set_task_done_command,
             update_task_command,
+            get_pending_tasks_command,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

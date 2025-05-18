@@ -110,3 +110,9 @@ pub fn update_task_command(
 
     Ok(updated_task)
 }
+
+#[command]
+pub fn get_pending_tasks_command() -> Result<Vec<Task>, String> {
+    let mut conn = DbConnection::connect_to_active_db().map_err(|e| e.to_string())?;
+    TaskRepository::get_pending_tasks(&mut conn).map_err(|e| e.to_string())
+}
