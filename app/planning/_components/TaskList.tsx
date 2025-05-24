@@ -1,85 +1,195 @@
-import type React from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-import { TaskItem } from "./TaskItem"
-import type { Task } from "@/types/Task"
+"use client"
 
-interface TaskWithSubtasks extends Task {
-  subtasks?: Task[]
-  isExpanded?: boolean
-}
+import { useState, useEffect, useMemo } from "react"
+import type { Task, Category, TaskFilters, TaskWithSubtasks } from "@/types/Task"
+import { TaskItem } from "./TaskItem"
+import { TaskFilters as TaskFiltersComponent } from "./TasksFilters"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Loader2, AlertCircle } from "lucide-react"
+import { FaProjectDiagram } from "react-icons/fa"
+import { BookOpen, Calendar } from "lucide-react"
+import { organizeTasksWithSubtasks, filterTasks } from "./TaskUtils"
+import { Separator } from "@radix-ui/react-separator"
 
 interface TaskListProps {
-  title: string
-  icon: React.ReactNode
-  tasks: TaskWithSubtasks[]
-  isLoading: boolean
-  expandedTaskIds: Set<number>
-  onToggleExpand: (taskId: number) => void
-  onSelectTask: (task: Task) => void
-  onCompleteTask: (taskId: number) => void
-  emptyMessage?: string
+  fetchPendingTasks: () => Promise<Task[] | null>
+  fetchCategories: () => Promise<Category[] | null>
 }
 
-export function TaskList({
-  title,
-  icon,
-  tasks,
-  isLoading,
-  expandedTaskIds,
-  onToggleExpand,
-  onSelectTask,
-  onCompleteTask,
-  emptyMessage = "Nenhuma tarefa encontrada.",
-}: TaskListProps) {
+export function TaskList({ fetchPendingTasks, fetchCategories }: TaskListProps) {
+  const [allTasks, setAllTasks] = useState<Task[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [expandedTasks, setExpandedTasks] = useState<Set<number>>(new Set())
+  const [filters, setFilters] = useState<TaskFilters>({
+    categoryId: null,
+    dateFilter: {},
+    searchTerm: "",
+  })
+
+  const loadData = async () => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const [tasks, categoriesData] = await Promise.all([fetchPendingTasks(), fetchCategories()])
+
+      if (tasks) setAllTasks(tasks)
+      if (categoriesData) setCategories(categoriesData)
+    } catch (err) {
+      setError(`Erro ao carregar dados: ${err}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  const handleToggleExpand = (taskId: number) => {
+    setExpandedTasks((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(taskId)) {
+        newSet.delete(taskId)
+      } else {
+        newSet.add(taskId)
+      }
+      return newSet
+    })
+  }
+
+  const filteredTasks = useMemo(() => {
+    return filterTasks(allTasks, filters)
+  }, [allTasks, filters])
+
+  const tasksByType = useMemo(() => {
+    const organized = organizeTasksWithSubtasks(filteredTasks)
+
+    const updatedTasks = organized.map((task) => ({
+      ...task,
+      isExpanded: expandedTasks.has(task.id),
+      subtasks: task.subtasks.map((subtask) => ({
+        ...subtask,
+        isExpanded: expandedTasks.has(subtask.id),
+      })),
+    }))
+
+    return {
+      project: updatedTasks.filter((task) => task.type === "project"),
+      study: updatedTasks.filter((task) => task.type === "study"),
+      event: updatedTasks.filter((task) => task.type === "event"),
+    }
+  }, [filteredTasks, expandedTasks])
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case "project":
+        return <FaProjectDiagram className="w-4 h-4" />
+      case "study":
+        return <BookOpen className="w-4 h-4" />
+      case "event":
+        return <Calendar className="w-4 h-4" />
+      default:
+        return null
+    }
+  }
+
+  const renderTaskList = (tasks: TaskWithSubtasks[]) => {
+    if (tasks.length === 0) {
+      return <div className="text-center py-8 text-muted-foreground">Nenhuma tarefa encontrada.</div>
+    }
+
+    return (
+      <div className="space-y-3">
+        {tasks.map((task) => (
+          <TaskItem key={task.id} task={task} onToggleExpand={handleToggleExpand} />
+        ))}
+      </div>
+    )
+  }
+
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            {icon} {title}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-start gap-2">
-                <Skeleton className="h-5 w-5 rounded-sm" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-6 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
-                </div>
-              </div>
-            ))}
-          </div>
+      <Card className="w-full">
+        <CardContent className="flex items-center justify-center py-8">
+          <Loader2 className="w-6 h-6 animate-spin mr-2" />
+          <span>Carregando tarefas...</span>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card className="w-full">
+        <CardContent className="flex items-center justify-center py-8 text-red-600">
+          <AlertCircle className="w-6 h-6 mr-2" />
+          <span>{error}</span>
         </CardContent>
       </Card>
     )
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          {icon} {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {tasks.length > 0 ? (
-          tasks.map((task) => (
-            <TaskItem
-              key={task.id}
-              task={task}
-              expandedTaskIds={expandedTaskIds}
-              onToggleExpand={onToggleExpand}
-              onSelectTask={onSelectTask}
-              onCompleteTask={onCompleteTask}
-            />
-          ))
-        ) : (
-          <div className="p-6 text-center text-muted-foreground">{emptyMessage}</div>
-        )}
-      </CardContent>
-    </Card>
+    <div className="w-full space-y-2">
+      <Card className="bg-background border-0">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-3xl font-semibold">
+            Pending Tasks
+            <span className="text-lg font-normal text-foreground">
+              ({filteredTasks.length} de {allTasks.length})
+            </span>
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="space-y-4 mt-0">
+          <Tabs defaultValue="project" className="w-full">
+            <div className="flex items-center justify-between gap-2 w-full">
+                <TabsList className="flex gap-1 p-1 rounded-lg">
+                  <TabsTrigger value="project" className="flex items-center gap-2 px-3 py-2">
+                    {getTypeIcon("project")}
+                    <span className="hidden sm:block">Projects</span>
+                    <span className="sm:hidden">Proj</span>
+                    <span className="text-xs opacity-70">({tasksByType.project.length})</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="study" className="flex items-center gap-2 px-3 py-2">
+                    {getTypeIcon("study")}
+                    <span className="hidden sm:block">Study</span>
+                    <span className="sm:hidden">Est</span>
+                    <span className="text-xs opacity-70">({tasksByType.study.length})</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="event" className="flex items-center gap-2 px-3 py-2">
+                    {getTypeIcon("event")}
+                    <span className="hidden sm:block">Events</span>
+                    <span className="sm:hidden">Ev</span>
+                    <span className="text-xs opacity-70">({tasksByType.event.length})</span>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+
+                <TaskFiltersComponent 
+                  categories={categories} 
+                  filters={filters} 
+                  onFiltersChange={setFilters} 
+                />
+
+            <TabsContent value="project" className="mt-6">
+              {renderTaskList(tasksByType.project)}
+            </TabsContent>
+
+            <TabsContent value="study" className="mt-6">
+              {renderTaskList(tasksByType.study)}
+            </TabsContent>
+
+            <TabsContent value="event" className="mt-6">
+              {renderTaskList(tasksByType.event)}
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

@@ -1,157 +1,90 @@
 "use client"
-
-import { format, parseISO, isValid } from "date-fns"
-import { ptBR } from "date-fns/locale"
-import { Calendar, ChevronDown, ChevronUp, Clock, Layers } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import type { TaskWithSubtasks } from "@/types/Task"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
-import type { Task } from "@/types/Task"
-
-interface TaskWithSubtasks extends Task {
-  subtasks?: Task[]
-  isExpanded?: boolean
-}
+import { Button } from "@/components/ui/button"
+import { Calendar, Clock, ChevronDown, ChevronRight } from "lucide-react"
+import { formatDate } from "./TaskUtils"
 
 interface TaskItemProps {
   task: TaskWithSubtasks
   isSubtask?: boolean
-  onToggleExpand: (taskId: number) => void
-  onSelectTask: (task: Task) => void
-  onCompleteTask: (taskId: number) => void
-  expandedTaskIds: Set<number>
+  onToggleExpand?: (taskId: number) => void
 }
 
-export function TaskItem({
-  task,
-  isSubtask = false,
-  onToggleExpand,
-  onSelectTask,
-  onCompleteTask,
-  expandedTaskIds,
-}: TaskItemProps) {
-  const hasSubtasks = task.subtasks && task.subtasks.length > 0
-  const isExpanded = expandedTaskIds.has(task.id)
+export function TaskItem({ task, isSubtask = false, onToggleExpand }: TaskItemProps) {
+  const hasSubtasks = task.subtasks.length > 0
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "bg-yellow-500/20 text-yellow-500 border-yellow-500/50"
-      case "in_progress":
-        return "bg-blue-500/20 text-blue-500 border-blue-500/50"
-      case "done":
-        return "bg-green-500/20 text-green-500 border-green-500/50"
-      case "not_initialized":
-        return "bg-purple-500/20 text-purple-500 border-purple-500/50"
-      default:
-        return "bg-gray-500/20 text-gray-500 border-gray-500/50"
-    }
-  }
-
-  const getTypeIcon = (type: "project" | "study" | "event") => {
-    switch (type) {
-      case "project":
-        return <Layers className="h-4 w-4" />
-      case "study":
-        return <Calendar className="h-4 w-4" />
-      case "event":
-        return <Clock className="h-4 w-4" />
-    }
-  }
-
-  const formatDate = (dateString?: string | null) => {
-    if (!dateString) return null
-
-    try {
-      const date = parseISO(dateString)
-      if (!isValid(date)) return null
-
-      return format(date, "dd 'de' MMMM", { locale: ptBR })
-    } catch (error) {
-      return null
+  const handleToggleExpand = () => {
+    if (hasSubtasks && onToggleExpand) {
+      onToggleExpand(task.id)
     }
   }
 
   return (
-    <div className={cn("mb-2", isSubtask ? "ml-6 mt-2" : "")}>
-      <div
-        className={cn(
-          "p-3 rounded-lg bg-card border border-border hover:bg-accent/50 transition-colors",
-          isSubtask ? "border-dashed" : "",
-        )}
-        onClick={() => onSelectTask(task)}
+    <div className="space-y-2">
+      <Card
+        className={`${isSubtask ? "ml-6 border-l-4 border-l-blue-200" : ""} hover:shadow-md transition-shadow ${
+          hasSubtasks && !isSubtask ? "cursor-pointer" : ""
+        }`}
+        onClick={!isSubtask ? handleToggleExpand : undefined}
       >
-        <div className="flex items-start gap-2">
-          <Checkbox
-            checked={task.status === "done"}
-            onCheckedChange={() => onCompleteTask(task.id)}
-            className="mt-1"
-            onClick={(e) => e.stopPropagation()}
-          />
+        <CardContent className="px-4 py-0">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              {hasSubtasks && !isSubtask && (
+                <Button variant="ghost" size="sm" className="p-1 h-6 w-6 shrink-0">
+                  {task.isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                </Button>
+              )}
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between">
-              <div className="font-medium line-clamp-2">{task.title}</div>
-
-              <div className="flex items-center gap-2 ml-2 shrink-0">
-                <Badge variant="outline" className={getStatusColor(task.status)}>
-                  {task.status === "pending"
-                    ? "Pending"
-                    : task.status === "in_progress"
-                      ? "In Progress"
-                      : task.status === "not_initialized"
-                        ? "Not Initialized"
-                        : "Concluída"}
-                </Badge>
-
-                <Badge variant="outline" className="bg-card">
-                  <span className="flex items-center gap-1">
-                    {getTypeIcon(task.type)}
-                    {task.type === "project" ? "Projeto" : task.type === "study" ? "Estudo" : "Evento"}
-                  </span>
-                </Badge>
-
-                {hasSubtasks && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onToggleExpand(task.id)
-                    }}
-                  >
-                    {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
-                )}
+              <div className="min-w-0 flex-1">
+                <h4 className={`${isSubtask ? "text-base" : "text-lg"} font-semibold truncate`}>{task.title}</h4>
+                {task.description && <p className="text-sm text-muted-foreground truncate mt-1">{task.description}</p>}
               </div>
             </div>
 
-            {task.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{task.description}</p>}
+            <div className="flex items-center gap-3 shrink-0">
+              {task.due_date && (
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <Calendar className="w-3 h-3 text-primary" />
+                  <span className="whitespace-nowrap">{formatDate(task.due_date)}</span>
+                </div>
+              )}
 
-            {task.due_date && (
-              <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
-                <Calendar className="h-3 w-3" />
-                {formatDate(task.due_date)}
-              </div>
-            )}
+              {task.type === "study" && task.last_recall && (
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <Clock className="w-3 h-" />
+                  <span className="whitespace-nowrap">{formatDate(task.last_recall)}</span>
+                </div>
+              )}
+
+              <Badge variant="outline" className="text-sm whitespace-nowrap">
+                {task.status}
+              </Badge>
+
+              {hasSubtasks && !isSubtask && (
+                <Badge variant="default" className="text-xs">
+                  {task.subtasks.length}
+                </Badge>
+              )}
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {hasSubtasks && isExpanded && (
-        <div className="border-l-2 border-border pl-2 mt-1">
-          {task.subtasks?.map((subtask) => (
+      {hasSubtasks && task.isExpanded && (
+        <div className="space-y-2">
+          {task.subtasks.map((subtask) => (
             <TaskItem
               key={subtask.id}
-              task={subtask}
-              isSubtask={true}
-              onToggleExpand={onToggleExpand}
-              onSelectTask={onSelectTask}
-              onCompleteTask={onCompleteTask}
-              expandedTaskIds={expandedTaskIds}
+              task={{
+                ...subtask,
+                subtasks: "subtasks" in subtask && Array.isArray((subtask as any).subtasks)
+                  ? (subtask as any).subtasks
+                  : [],
+              }}
+              isSubtask
             />
           ))}
         </div>
