@@ -54,9 +54,16 @@ export const filterTasks = (tasks: Task[], filters: TaskFilters): Task[] => {
       }
     }
 
+    if (filters.status) {
+      if (task.status !== filters.status) {
+        return false
+      }
+    }
+
     if (filters.searchTerm) {
       const searchLower = filters.searchTerm.toLowerCase()
-      return task.title.toLowerCase().includes(searchLower) || task.description?.toLowerCase().includes(searchLower)
+      return task.title.toLowerCase().includes(searchLower) ||
+             task.description?.toLowerCase().includes(searchLower)
     }
 
     return true

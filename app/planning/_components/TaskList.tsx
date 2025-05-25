@@ -10,7 +10,7 @@ import { Loader2, AlertCircle } from "lucide-react"
 import { FaProjectDiagram } from "react-icons/fa"
 import { BookOpen, Calendar } from "lucide-react"
 import { organizeTasksWithSubtasks, filterTasks } from "./TaskUtils"
-import { Separator } from "@radix-ui/react-separator"
+import { AddEventButton } from "./EventModal"
 
 interface TaskListProps {
   fetchPendingTasks: () => Promise<Task[] | null>
@@ -27,6 +27,7 @@ export function TaskList({ fetchPendingTasks, fetchCategories }: TaskListProps) 
     categoryId: null,
     dateFilter: {},
     searchTerm: "",
+    status: null,
   })
 
   const loadData = async () => {
@@ -58,6 +59,27 @@ export function TaskList({ fetchPendingTasks, fetchCategories }: TaskListProps) 
         newSet.add(taskId)
       }
       return newSet
+    })
+  }
+
+  const handleTaskUpdate = (updatedTask: Task) => {
+    setAllTasks(prevTasks => {
+      const updateTaskRecursively = (tasks: Task[]): Task[] => {
+        return tasks.map(task => {
+          if (task.id === updatedTask.id) {
+            return { ...task, ...updatedTask }
+          }
+          
+          if ('subtasks' in task && Array.isArray((task as any).subtasks)) {
+            const updatedSubtasks = updateTaskRecursively((task as any).subtasks)
+            return { ...task, subtasks: updatedSubtasks }
+          }
+          
+          return task
+        })
+      }
+
+      return updateTaskRecursively(prevTasks)
     })
   }
 
@@ -105,7 +127,12 @@ export function TaskList({ fetchPendingTasks, fetchCategories }: TaskListProps) 
     return (
       <div className="space-y-3">
         {tasks.map((task) => (
-          <TaskItem key={task.id} task={task} onToggleExpand={handleToggleExpand} />
+          <TaskItem 
+            key={task.id} 
+            task={task} 
+            onToggleExpand={handleToggleExpand}
+            onTaskUpdate={handleTaskUpdate}
+          />
         ))}
       </div>
     )
@@ -116,7 +143,7 @@ export function TaskList({ fetchPendingTasks, fetchCategories }: TaskListProps) 
       <Card className="w-full">
         <CardContent className="flex items-center justify-center py-8">
           <Loader2 className="w-6 h-6 animate-spin mr-2" />
-          <span>Carregando tarefas...</span>
+          <span>Loading Tasks...</span>
         </CardContent>
       </Card>
     )
@@ -136,13 +163,14 @@ export function TaskList({ fetchPendingTasks, fetchCategories }: TaskListProps) 
   return (
     <div className="w-full space-y-2">
       <Card className="bg-background border-0">
-        <CardHeader>
+        <CardHeader className="flex justify-between gap-2">
           <CardTitle className="flex items-center gap-2 text-3xl font-semibold">
             Pending Tasks
             <span className="text-lg font-normal text-foreground">
               ({filteredTasks.length} de {allTasks.length})
             </span>
           </CardTitle>
+          <AddEventButton />
         </CardHeader>
 
         <CardContent className="space-y-4 mt-0">
@@ -173,7 +201,7 @@ export function TaskList({ fetchPendingTasks, fetchCategories }: TaskListProps) 
                 <TaskFiltersComponent 
                   categories={categories} 
                   filters={filters} 
-                  onFiltersChange={setFilters} 
+                  onFiltersChange={setFilters}
                 />
 
             <TabsContent value="project" className="mt-6">

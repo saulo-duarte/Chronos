@@ -34,4 +34,5 @@ export interface TaskFilters {
   categoryId?: number | null
   dateFilter: DateFilter
   searchTerm?: string
+  status?: "not_initialized" | "to_do" | "in_progress" | null
 }
